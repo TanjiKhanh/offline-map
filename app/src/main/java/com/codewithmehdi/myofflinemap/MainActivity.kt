@@ -17,8 +17,7 @@ import java.io.FileInputStream
 class MainActivity : AppCompatActivity() {
 
     companion object{
-        val BERLIN = LatLong(52.5200, 13.4050)
-        val ALABAMA = LatLong(32.3182, 86.9023)
+        val HCM = LatLong(10.762622, 106.660172)
     }
 
     private lateinit var b: ActivityMainBinding
@@ -80,7 +79,7 @@ class MainActivity : AppCompatActivity() {
 
         b.map.layerManager.layers.add(renderLayer)
 
-        b.map.setCenter(BERLIN)
-        b.map.setZoomLevel(10)
+        b.map.setCenter(HCM)
+        b.map.setZoomLevel(12)
     }
 }
