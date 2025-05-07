@@ -6,16 +6,21 @@ import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
 import com.codewithmehdi.myofflinemap.databinding.ActivityRegisterBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityRegisterBinding
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         b = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(b.root)
+
+        // ✅ Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
 
         b.registerButton.setOnClickListener {
             val email = b.registerEmail.text.toString().trim()
@@ -33,11 +38,18 @@ class RegisterActivity : AppCompatActivity() {
                     showSnackbar("Passwords do not match")
                 }
                 else -> {
-                    showSnackbar("Registered successfully!")
-
-                    // Redirect to login activity after success
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
+                    // ✅ Create user with Firebase
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                showSnackbar("Registration successful!")
+                                // Navigate to login screen or main screen
+                                startActivity(Intent(this, LoginActivity::class.java))
+                                finish()
+                            } else {
+                                showSnackbar("Registration failed: ${task.exception?.message}")
+                            }
+                        }
                 }
             }
         }
