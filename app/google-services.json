@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "960109886686",
+    "project_id": "project-ooad",
+    "storage_bucket": "project-ooad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960109886686:android:29f0e76c2be020ba5c964f",
+        "android_client_info": {
+          "package_name": "com.codewithmehdi.myofflinemap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9_0NqVUL5ZqcFB6Ylfgyxu9W76bNyw1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
