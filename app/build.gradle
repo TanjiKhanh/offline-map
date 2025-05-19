@@ -43,7 +43,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.firebase:firebase-auth:23.2.0'
     implementation 'androidx.credentials:credentials:1.5.0'
     implementation 'androidx.credentials:credentials-play-services-auth:1.5.0'
     implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
@@ -67,6 +66,22 @@ dependencies {
     implementation 'org.mapsforge:sqlite-android:0.18.0:natives-arm64-v8a'
     implementation 'org.mapsforge:sqlite-android:0.18.0:natives-x86'
     implementation 'org.mapsforge:sqlite-android:0.18.0:natives-x86_64'
+
+
+    //Location service
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+
+
+    // Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:32.7.0') // latest as of May 2025
+
+    // Firebase dependencies
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-storage-ktx'
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-common-ktx'
+
+
 
 
 

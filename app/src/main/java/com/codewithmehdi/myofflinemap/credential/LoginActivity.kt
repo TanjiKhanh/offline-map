@@ -1,9 +1,11 @@
-package com.codewithmehdi.myofflinemap
+package com.codewithmehdi.myofflinemap.credential
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
+import com.codewithmehdi.myofflinemap.MainActivity
+import com.codewithmehdi.myofflinemap.credential.WelcomeActivity
 import com.codewithmehdi.myofflinemap.databinding.ActivityLoginBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
