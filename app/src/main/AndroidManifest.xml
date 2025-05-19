@@ -2,12 +2,19 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="com.codewithmehdi.myofflinemap">
 
-    <!-- Permissions for Firebase and file access -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Uncomment if targeting API < 33 and using file picker -->
-    <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> -->
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+
+
 
     <application
+            android:name=".MyApp"
             android:allowBackup="true"
             android:dataExtractionRules="@xml/data_extraction_rules"
             android:fullBackupContent="@xml/backup_rules"
@@ -17,34 +24,41 @@
             android:theme="@style/Theme.MyOfflineMap"
             tools:targetApi="31">
 
-        <!-- Set WelcomeActivity as the launcher activity -->
+
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="${applicationId}.provider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Set LoginController as the launcher activity -->
         <activity
-                android:name=".WelcomeActivity"
+                android:name=".credential.WelcomeActivity"
                 android:exported="true"
-                android:clearTaskOnLaunch="true">
+                android:theme="@style/Theme.MyOfflineMap" >
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- MainActivity, not exported unless needed -->
-        <activity
-                android:name=".MainActivity"
-                android:exported="false" />
+        <!-- MainActivity is no longer the launcher -->
+        <activity android:name=".ReportActivity" android:exported="true" />
 
-        <!-- LoginActivity, not exported -->
-        <activity
-                android:name=".LoginActivity"
-                android:exported="false" />
+        <!-- RegisterActivity (if needed) -->
+        <activity android:name=".credential.RegisterActivity" android:exported="true" />
 
-        <!-- RegisterActivity, not exported -->
-        <activity
-                android:name=".RegisterActivity"
-                android:exported="false" />
 
-        <meta-data
-                android:name="preloaded_fonts"
-                android:resource="@array/preloaded_fonts" />
+        <activity android:name=".credential.LoginActivity" android:exported="true" />
+
+        <activity android:name=".MainActivity" android:exported="true" />
+
+
+
     </application>
 </manifest>

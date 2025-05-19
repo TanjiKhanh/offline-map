@@ -7,7 +7,7 @@
         android:layout_height="match_parent"
         android:padding="24dp"
         android:background="@drawable/wave_background"
-        tools:context=".credencial.LoginActivity">
+        tools:context=".credential.LoginActivity">
 
     <TextView
             android:id="@+id/loginTitle"

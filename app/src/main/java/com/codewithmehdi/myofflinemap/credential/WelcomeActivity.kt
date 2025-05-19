@@ -1,4 +1,4 @@
-package com.codewithmehdi.myofflinemap
+package com.codewithmehdi.myofflinemap.credential
 
 import android.content.Intent
 import android.os.Bundle
