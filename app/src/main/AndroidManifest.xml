@@ -2,31 +2,49 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="com.codewithmehdi.myofflinemap">
 
+    <!-- Permissions for Firebase and file access -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Uncomment if targeting API < 33 and using file picker -->
+    <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> -->
+
     <application
             android:allowBackup="true"
             android:dataExtractionRules="@xml/data_extraction_rules"
             android:fullBackupContent="@xml/backup_rules"
             android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.MyOfflineMap"
             tools:targetApi="31">
 
-        <!-- Set LoginController as the launcher activity -->
+        <!-- Set WelcomeActivity as the launcher activity -->
         <activity
-                android:name=".LoginActivity"
-                android:exported="true">
+                android:name=".WelcomeActivity"
+                android:exported="true"
+                android:clearTaskOnLaunch="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- MainActivity is no longer the launcher -->
-        <activity android:name=".MainActivity" android:exported="true" />
+        <!-- MainActivity, not exported unless needed -->
+        <activity
+                android:name=".MainActivity"
+                android:exported="false" />
 
-        <!-- RegisterActivity (if needed) -->
-        <activity android:name=".RegisterActivity" android:exported="true" />
+        <!-- LoginActivity, not exported -->
+        <activity
+                android:name=".LoginActivity"
+                android:exported="false" />
+
+        <!-- RegisterActivity, not exported -->
+        <activity
+                android:name=".RegisterActivity"
+                android:exported="false" />
+
+        <meta-data
+                android:name="preloaded_fonts"
+                android:resource="@array/preloaded_fonts" />
     </application>
 </manifest>
