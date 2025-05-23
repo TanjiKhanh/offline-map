@@ -469,7 +469,7 @@
                         android:layout_width="8dp"
                         android:layout_height="8dp"
                         android:layout_marginEnd="4dp"
-                        android:background="#DC2626" />
+                        android:foreground="@drawable/dot_red" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -489,7 +489,7 @@
                         android:layout_width="8dp"
                         android:layout_height="8dp"
                         android:layout_marginEnd="4dp"
-                        android:background="#F59E0B" />
+                        android:foreground="@drawable/dot_yellow" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -508,7 +508,7 @@
                         android:layout_width="8dp"
                         android:layout_height="8dp"
                         android:layout_marginEnd="4dp"
-                        android:background="#10B981" />
+                        android:foreground="@drawable/dot_green" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
