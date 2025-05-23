@@ -4,111 +4,76 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
-import com.codewithmehdi.myofflinemap.MainActivity
-import com.codewithmehdi.myofflinemap.credential.WelcomeActivity
+import com.codewithmehdi.myofflinemap.ResidentActivity
 import com.codewithmehdi.myofflinemap.databinding.ActivityRegisterBinding
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityRegisterBinding
-    private lateinit var auth: FirebaseAuth
+    private val client = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Initialize view binding
         b = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-
-        // Handle register button click
         b.registerButton.setOnClickListener {
+            val username = b.registerUsername.text.toString().trim()
             val email = b.registerEmail.text.toString().trim()
             val password = b.registerPassword.text.toString().trim()
-            val username = b.registerUsername.text.toString().trim()
 
-            when {
-                email.isEmpty() || password.isEmpty() || username.isEmpty() -> {
-                    showSnackbar("Please fill all fields")
-                }
-                !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                    showSnackbar("Please enter a valid email address")
-                }
-                password.length < 6 -> {
-                    showSnackbar("Password must be at least 6 characters")
-                }
-                username.length < 3 -> {
-                    showSnackbar("Username must be at least 3 characters")
-                }
-                else -> {
-                    // Show loading state
-                    b.registerButton.isEnabled = false
-                    b.registerButton.text = "Registering..."
-
-                    // Create user with Firebase
-                    auth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                // Set username in Firebase user profile
-                                val user = auth.currentUser
-                                val profileUpdates = UserProfileChangeRequest.Builder()
-                                    .setDisplayName(username)
-                                    .build()
-                                user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
-                                    b.registerButton.isEnabled = true
-                                    b.registerButton.text = "Create account"
-
-                                    if (profileTask.isSuccessful) {
-                                        showSnackbar("Registration successful!")
-                                        navigateToMainActivity()
-                                    } else {
-                                        showSnackbar("Failed to set username: ${profileTask.exception?.message}")
-                                    }
-                                }
-                            } else {
-                                b.registerButton.isEnabled = true
-                                b.registerButton.text = "Create account"
-                                showSnackbar("Registration failed: ${task.exception?.message ?: "Unknown error"}")
-                            }
-                        }
-                }
+            if (username.length < 3 || !Patterns.EMAIL_ADDRESS.matcher(email).matches() || password.length < 6) {
+                showSnackbar("Please enter valid credentials")
+                return@setOnClickListener
             }
+
+            val formBody = FormBody.Builder()
+                .add("username", username)
+                .add("email", email)
+                .add("password", password)
+                .build()
+
+            val request = Request.Builder()
+                .url("http://10.0.2.2/website/register.php")
+                .post(formBody)
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    runOnUiThread {
+                        showSnackbar("Registration failed: ${e.message}")
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body?.string()
+                    val json = JSONObject(body ?: "{}")
+                    val success = json.optBoolean("success")
+
+                    runOnUiThread {
+                        if (success) {
+                            showSnackbar("Registration successful!")
+                            startActivity(Intent(this@RegisterActivity, ResidentActivity::class.java))
+                            finish()
+                        } else {
+                            showSnackbar(json.optString("message", "Registration failed"))
+                        }
+                    }
+                }
+            })
         }
 
-        // Redirect to LoginActivity
         b.txtLogIn.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
-            finish() // Finish RegisterActivity to enforce flow
+            finish()
         }
-
-        // Handle social login buttons
-        b.btnGoogleSignIn.setOnClickListener {
-            showSnackbar("Google sign-in not implemented yet")
-        }
-
-        b.btnAppleSignIn.setOnClickListener {
-            showSnackbar("Apple sign-in not implemented yet")
-        }
-    }
-
-    private fun navigateToMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-        finish()
     }
 
     private fun showSnackbar(message: String) {
         Snackbar.make(b.root, message, Snackbar.LENGTH_LONG).show()
-    }
-
-    override fun onBackPressed() {
-        startActivity(Intent(this, WelcomeActivity::class.java))
-        finish()
     }
 }

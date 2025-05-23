@@ -10,17 +10,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.codewithmehdi.myofflinemap.databinding.ActivityReportBinding
-import com.google.firebase.auth.FirebaseAuth
-import org.mapsforge.map.android.graphics.AndroidGraphicFactory
-
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
-import java.util.UUID
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.ktx.firestore
-
+import java.io.IOException
+import java.util.*
 
 class ReportActivity : AppCompatActivity() {
     private lateinit var b: ActivityReportBinding
@@ -52,15 +48,13 @@ class ReportActivity : AppCompatActivity() {
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AndroidGraphicFactory.createInstance(application)
         b = ActivityReportBinding.inflate(layoutInflater)
         setContentView(b.root)
 
         b.returnBtn.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, ResidentActivity::class.java))
             finish()
         }
 
@@ -78,13 +72,10 @@ class ReportActivity : AppCompatActivity() {
             takePictureLauncher.launch(null)
         }
 
-
         b.submitBtn.setOnClickListener {
             submitReport()
         }
     }
-
-
 
     private fun saveBitmapToCache(bitmap: Bitmap): Uri {
         val file = File(cacheDir, "camera_image.jpg")
@@ -98,68 +89,81 @@ class ReportActivity : AppCompatActivity() {
         )
     }
 
-
     private fun submitReport() {
         val description = b.messageEdit.text.toString().trim()
-        val locationText = b.locationEdit.text.toString().trim()
+        val location = b.locationEdit.text.toString().trim()
 
-        if (description.isEmpty() || locationText.isEmpty()) {
-            Toast.makeText(this, "Please enter description and location", Toast.LENGTH_SHORT).show()
+        if (description.isEmpty() || location.isEmpty()) {
+            Toast.makeText(this, "Please fill in description and location", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (photoUri != null) {
-            uploadPhotoAndSave(description, locationText)
-        } else {
-            saveToFirestore(description, locationText, null)
-        }
-    }
-
-    private fun uploadPhotoAndSave(description: String, location: String) {
-        val storageRef = Firebase.storage.reference
-        val imageRef = storageRef.child("reports/${UUID.randomUUID()}.jpg")
-
-        imageRef.putFile(photoUri!!)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) task.exception?.let { throw it }
-                imageRef.downloadUrl
-            }
-            .addOnSuccessListener { downloadUri ->
-                saveToFirestore(description, location, downloadUri.toString())
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Upload failed", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun saveToFirestore(description: String, location: String, photoUrl: String?) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-
-        if (currentUser == null) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+        // Retrieve token from SharedPreferences
+        val prefs = getSharedPreferences("auth", MODE_PRIVATE)
+        val token = prefs.getString("token", null)
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(this, "Not authenticated. Please log in again.", Toast.LENGTH_LONG).show()
+            // Optionally redirect to login
+            startActivity(Intent(this, com.codewithmehdi.myofflinemap.credential.LoginActivity::class.java))
+            finish()
             return
         }
 
-        val report = hashMapOf(
-            "userId" to currentUser.uid,
-            "description" to description,
-            "location" to location,
-            "photoUrl" to photoUrl,
-            "status" to "pending",
-            "timestamp" to FieldValue.serverTimestamp()
-        )
+        val client = OkHttpClient()
+        val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("description", description)
+            .addFormDataPart("location", location)
 
-        Firebase.firestore.collection("reports")
-            .add(report)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Report submitted", Toast.LENGTH_SHORT).show()
-                finish()
+        photoUri?.let { uri ->
+            // Use content resolver to get the stream if it's a content URI
+            val inputStream = contentResolver.openInputStream(uri)
+            val fileName = "upload_${System.currentTimeMillis()}.jpg"
+            if (inputStream != null) {
+                val tempFile = File.createTempFile("upload_", ".jpg", cacheDir)
+                tempFile.outputStream().use { out -> inputStream.copyTo(out) }
+                builder.addFormDataPart(
+                    "photo", fileName,
+                    RequestBody.create("image/*".toMediaTypeOrNull(), tempFile)
+                )
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Failed to save report: ${e.message}", Toast.LENGTH_LONG).show()
-                e.printStackTrace() // Also prints to Logcat
+        }
+
+        val request = Request.Builder()
+            .url("http://10.0.2.2/website/report.php")
+            .addHeader("Authorization", "Bearer $token") // Send token in header
+            .post(builder.build())
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@ReportActivity, "Failed to submit: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
+
+            override fun onResponse(call: Call, response: Response) {
+                runOnUiThread {
+                    val responseBody = response.body?.string()
+                    if (response.isSuccessful && responseBody != null) {
+                        try {
+                            val json = JSONObject(responseBody)
+                            val success = json.optBoolean("success", false)
+                            Toast.makeText(this@ReportActivity, json.optString("message", "Report submitted"), Toast.LENGTH_SHORT).show()
+                            if (success) {
+                                // Only navigate if submission was successful
+                                val intent = Intent(this@ReportActivity, ResidentActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(this@ReportActivity, "Report failed" + e, Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this@ReportActivity, "Server error: ${response.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
     }
-
 }
-

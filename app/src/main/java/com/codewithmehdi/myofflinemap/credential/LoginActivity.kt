@@ -4,96 +4,90 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
-import com.codewithmehdi.myofflinemap.MainActivity
-import com.codewithmehdi.myofflinemap.credential.WelcomeActivity
 import com.codewithmehdi.myofflinemap.databinding.ActivityLoginBinding
+import com.codewithmehdi.myofflinemap.PoliceActivity
+import com.codewithmehdi.myofflinemap.ResidentActivity
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
+    private val client = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Initialize view binding
         b = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-
-        // Handle login button click
         b.loginButton.setOnClickListener {
             val email = b.loginEmail.text.toString().trim()
             val password = b.loginPassword.text.toString().trim()
 
-            when {
-                email.isEmpty() || password.isEmpty() -> {
-                    showSnackbar("Please fill all fields")
-                }
-                !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                    showSnackbar("Please enter a valid email address")
-                }
-                password.length < 6 -> {
-                    showSnackbar("Password must be at least 6 characters")
-                }
-                else -> {
-                    // Show loading state
-                    b.loginButton.isEnabled = false
-                    b.loginButton.text = "Logging in..."
-
-                    // Sign in with Firebase
-                    auth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            b.loginButton.isEnabled = true
-                            b.loginButton.text = "Login"
-
-                            if (task.isSuccessful) {
-                                // Optional: Add additional condition (e.g., profile check)
-                                // For example, check if user has a username in Firebase (if stored)
-                                showSnackbar("Login successful!")
-                                navigateToMainActivity()
-                            } else {
-                                showSnackbar("Login failed: ${task.exception?.message ?: "Unknown error"}")
-                            }
-                        }
-                }
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || password.isEmpty()) {
+                showSnackbar("Invalid credentials")
+                return@setOnClickListener
             }
+
+            val formBody = FormBody.Builder()
+                .add("email", email)
+                .add("password", password)
+                .build()
+
+            val request = Request.Builder()
+                .url("http://10.0.2.2/website/login.php")
+                .post(formBody)
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    runOnUiThread {
+                        showSnackbar("Login failed: ${e.message}")
+                    }
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body?.string()
+                    val json = JSONObject(body ?: "{}")
+                    val success = json.optBoolean("success")
+                    val role = json.optString("role_id")
+                    val token = json.optString("token")
+                    val userId = json.optString("user_id")
+
+                    runOnUiThread {
+                        if (success && token.isNotEmpty()) {
+                            // Save token and user info to SharedPreferences
+                            val prefs = getSharedPreferences("auth", MODE_PRIVATE)
+                            prefs.edit()
+                                .putString("token", token)
+                                .putString("role", role)
+                                .putString("user_id", userId)
+                                .apply()
+
+                            val intent = if (role == "2") {
+                                Intent(this@LoginActivity, PoliceActivity::class.java)
+                            } else {
+                                Intent(this@LoginActivity, ResidentActivity::class.java)
+                            }
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            showSnackbar(json.optString("message", "Login failed"))
+                        }
+                    }
+                }
+            })
         }
 
-        // Redirect to RegisterActivity
         b.registerRedirect.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
-            finish() // Finish LoginActivity to enforce flow
+            finish()
         }
-
-        // Google sign-in
-        b.googleLoginButton.setOnClickListener {
-            showSnackbar("Google sign-in not implemented yet")
-        }
-
-        // Forgot password
-        b.forgotPassword.setOnClickListener {
-            showSnackbar("Forgot password feature not implemented yet")
-        }
-    }
-
-    private fun navigateToMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-        finish()
     }
 
     private fun showSnackbar(message: String) {
-        Snackbar.make(b.root, message, Snackbar.LENGTH_LONG).show()
-    }
-
-    override fun onBackPressed() {
-        startActivity(Intent(this, WelcomeActivity::class.java))
-        finish()
+        Snackbar.make(b.root, message, Snackbar.LENGTH_SHORT).show()
     }
 }

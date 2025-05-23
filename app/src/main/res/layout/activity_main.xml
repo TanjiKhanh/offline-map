@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ResidentActivity">
 
 
 
@@ -435,7 +435,7 @@
                     android:background="@drawable/map_button_background"
                     android:src="@drawable/ic_target"
                     android:contentDescription="Locate"
-                    android:tint="#5A29E4" />
+                    />
 
                 <!-- Bottom-left button -->
                 <ImageButton
@@ -447,7 +447,7 @@
                     android:background="@drawable/map_button_background"
                     android:src="@drawable/ic_zoom"
                     android:contentDescription="Zoom"
-                    android:tint="#5A29E4" />
+                    />
             </FrameLayout>
 
             <!-- Risk Legend -->
@@ -553,7 +553,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_accident_report"
                     android:contentDescription="Traffic Accident"
-                    android:tint="#E53935" />
+                     />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -600,7 +600,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_heavy_traffic_report"
                     android:contentDescription="Heavy Traffic"
-                    android:tint="#F9A825" />
+                   />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -646,7 +646,7 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_minor_hazard_report"
                     android:contentDescription="Minor Hazard"
-                    android:tint="#26A69A" />
+                    />
 
                 <LinearLayout
                     android:layout_width="0dp"

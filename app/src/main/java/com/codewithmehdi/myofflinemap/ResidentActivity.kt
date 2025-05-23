@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import com.codewithmehdi.myofflinemap.databinding.ActivityMainBinding
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -23,7 +22,7 @@ import org.mapsforge.map.reader.MapFile
 import org.mapsforge.map.rendertheme.InternalRenderTheme
 import java.io.FileInputStream
 
-class MainActivity : AppCompatActivity() {
+class ResidentActivity : AppCompatActivity() {
 
     companion object {
         val HCM = LatLong(10.762622, 106.660172)
@@ -42,6 +41,11 @@ class MainActivity : AppCompatActivity() {
 
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
+
+        // --- BEGIN: Retrieve token and userId for API use ---
+        val prefs = getSharedPreferences("auth", MODE_PRIVATE)
+        val token = prefs.getString("token", null)
+        val userId = prefs.getString("user_id", null)
 
 
 
@@ -80,10 +84,14 @@ class MainActivity : AppCompatActivity() {
 
 
         //Report button
-        b.reportBtn.setOnClickListener(){
-            // Navigate to MainActivity
-            startActivity(Intent(this, ReportActivity::class.java))
+        b.reportBtn.setOnClickListener {
+            // Option 1: Pass token/userId via Intent (if you want)
+            val intent = Intent(this, ReportActivity::class.java)
+            intent.putExtra("token", token)
+            intent.putExtra("user_id", userId)
+            startActivity(intent)
             finish()
+            // Option 2: Just use SharedPreferences in ReportActivity (recommended)
         }
 
 

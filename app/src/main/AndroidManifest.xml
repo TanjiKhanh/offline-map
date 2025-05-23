@@ -14,6 +14,7 @@
 
 
     <application
+            android:usesCleartextTraffic="true"
             android:name=".MyApp"
             android:allowBackup="true"
             android:dataExtractionRules="@xml/data_extraction_rules"
@@ -56,7 +57,9 @@
 
         <activity android:name=".credential.LoginActivity" android:exported="true" />
 
-        <activity android:name=".MainActivity" android:exported="true" />
+        <activity android:name=".ResidentActivity" android:exported="true" />
+
+        <activity android:name=".PoliceActivity" android:exported="true" />
 
 
 
