@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="time_range_options">
+        <item>Last 7 days</item>
+        <item>Last 30 days</item>
+    </string-array>
+</resources>
