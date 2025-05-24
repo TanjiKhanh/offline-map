@@ -81,6 +81,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore-ktx'
     implementation 'com.google.firebase:firebase-common-ktx'
 
+    //Call php api
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+
 
 
 

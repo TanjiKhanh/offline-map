@@ -25,23 +25,23 @@
             />
 
     <TextView
-        android:id="@+id/appNameText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="42dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/logo"
-        android:fontFamily="@font/poppins_semibold_italic"
-        android:paddingStart="16dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="6dp"
-        android:text="Urban Monitor"
-        android:textColor="@android:color/white"
-        android:textSize="20sp"
-        android:textStyle="bold|italic"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            android:id="@+id/appNameText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Urban Monitor"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/logo"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="42dp"
+            android:fontFamily="@font/poppins_semibold_italic"
+            />
 
     <TextView
             android:id="@+id/loginTitle"
