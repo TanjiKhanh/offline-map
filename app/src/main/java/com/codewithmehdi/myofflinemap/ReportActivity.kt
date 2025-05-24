@@ -129,7 +129,7 @@ class ReportActivity : AppCompatActivity() {
         }
 
         val request = Request.Builder()
-            .url("http://10.0.2.2/website/report.php")
+            .url("http://10.0.2.2/website/submitReport.php")
             .addHeader("Authorization", "Bearer $token") // Send token in header
             .post(builder.build())
             .build()

@@ -10,7 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.codewithmehdi.myofflinemap.databinding.ActivityMainBinding
+import com.codewithmehdi.myofflinemap.databinding.ActivityResidentMainBinding
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.CancellationTokenSource
 import org.mapsforge.core.model.LatLong
@@ -29,7 +29,7 @@ class ResidentActivity : AppCompatActivity() {
         private const val LOCATION_REQUEST_CODE = 1001
     }
 
-    private lateinit var b: ActivityMainBinding
+    private lateinit var b: ActivityResidentMainBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
 
@@ -39,7 +39,7 @@ class ResidentActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         AndroidGraphicFactory.createInstance(application)
 
-        b = ActivityMainBinding.inflate(layoutInflater)
+        b = ActivityResidentMainBinding.inflate(layoutInflater)
         setContentView(b.root)
 
         // --- BEGIN: Retrieve token and userId for API use ---

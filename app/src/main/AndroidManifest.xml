@@ -38,7 +38,7 @@
 
         <!-- Set LoginController as the launcher activity -->
         <activity
-                android:name=".credential.WelcomeActivity"
+                android:name=".PoliceActivity"
                 android:exported="true"
                 android:theme="@style/Theme.MyOfflineMap" >
 
@@ -59,9 +59,11 @@
 
         <activity android:name=".ResidentActivity" android:exported="true" />
 
-        <activity android:name=".PoliceActivity" android:exported="true" />
+<!--        <activity android:name=".PoliceActivity" android:exported="true" />-->
 
 
-
+        <meta-data
+                android:name="preloaded_fonts"
+                android:resource="@array/preloaded_fonts" />
     </application>
 </manifest>
