@@ -2,11 +2,14 @@ package com.codewithmehdi.myofflinemap
 
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.codewithmehdi.myofflinemap.databinding.ActivityPoliceMainBinding
 import okhttp3.*
 import org.json.JSONArray
@@ -26,8 +29,17 @@ class PoliceActivity : AppCompatActivity() {
 
         // Setup RecyclerView
         b.reportsRecyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ReportAdapter(listOf())
+        adapter = ReportAdapter(listOf(),
+            onValidate = { report -> updateReportStatus(report, "confirmed") },
+            onReject = { report -> updateReportStatus(report, "rejected") },
+            onView = { report -> showReportDetail(report) }
+        )
         b.reportsRecyclerView.adapter = adapter
+
+        // Hide detail on close
+        b.btnCloseDetail.setOnClickListener {
+            b.layoutReportDetail.visibility = View.GONE
+        }
 
         loadReports()
     }
@@ -87,9 +99,66 @@ class PoliceActivity : AppCompatActivity() {
             }
         })
     }
+
+    fun showReportDetail(report: Report) {
+        b.layoutReportDetail.visibility = View.VISIBLE
+        val slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        b.layoutReportDetail.startAnimation(slideUp)
+
+        val photoUrl = report.photoUrl
+        if (!photoUrl.isNullOrEmpty()) {
+            // Ensure there is exactly one slash between baseUrl and photoUrl
+            val baseUrl = "http://10.0.2.2/website"
+            val fullUrl = if (photoUrl.startsWith("http")) {
+                photoUrl
+            } else if (photoUrl.startsWith("/")) {
+                baseUrl + photoUrl
+            } else {
+                "$baseUrl/$photoUrl"
+            }
+
+            Glide.with(this)
+                .load(fullUrl)
+                .placeholder(R.drawable.report_circle)
+                .error(R.drawable.report_circle)
+                .into(b.imgResidentUpload)
+        } else {
+            b.imgResidentUpload.setImageResource(R.drawable.report_circle)
+        }
+    }
+
+    fun updateReportStatus(report: Report, newStatus: String) {
+        // Optionally show loading indicator...
+
+        val requestBody = FormBody.Builder()
+            .add("report_id", report.id.toString())
+            .add("status", newStatus)
+            .build()
+
+        val request = Request.Builder()
+            .url("http://10.0.2.2/website/updateReportStatus.php")
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@PoliceActivity, "Failed to update status", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                runOnUiThread {
+                    loadReports() // Reload list after update
+                    Toast.makeText(this@PoliceActivity, "Status updated to $newStatus", Toast.LENGTH_SHORT).show()
+                    b.layoutReportDetail.visibility = View.GONE // Hide detail if open
+                }
+            }
+        })
+    }
 }
 
-// Define your data class
+// Data class
 data class Report(
     val id: Int,
     val userId: Int,
@@ -100,8 +169,13 @@ data class Report(
     val timestamp: String,
 )
 
-// Adapter skeleton for RecyclerView (implement ViewHolder, onBind, etc.)
-class ReportAdapter(private var reports: List<Report>) : androidx.recyclerview.widget.RecyclerView.Adapter<ReportViewHolder>() {
+// Adapter
+class ReportAdapter(
+    private var reports: List<Report>,
+    private val onValidate: (Report) -> Unit,
+    private val onReject: (Report) -> Unit,
+    private val onView: (Report) -> Unit
+) : androidx.recyclerview.widget.RecyclerView.Adapter<ReportViewHolder>() {
 
     fun updateReports(newReports: List<Report>) {
         this.reports = newReports
@@ -111,7 +185,7 @@ class ReportAdapter(private var reports: List<Report>) : androidx.recyclerview.w
     override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ReportViewHolder {
         val inflater = android.view.LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_report, parent, false)
-        return ReportViewHolder(view)
+        return ReportViewHolder(view, onValidate, onReject, onView)
     }
 
     override fun getItemCount(): Int = reports.size
@@ -121,7 +195,13 @@ class ReportAdapter(private var reports: List<Report>) : androidx.recyclerview.w
     }
 }
 
-class ReportViewHolder(itemView: android.view.View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
+// ViewHolder
+class ReportViewHolder(
+    itemView: android.view.View,
+    val onValidate: (Report) -> Unit,
+    val onReject: (Report) -> Unit,
+    val onView: (Report) -> Unit
+) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
     private val textTitle: TextView = itemView.findViewById(R.id.textTitle)
     private val textTime: TextView = itemView.findViewById(R.id.textTime)
     private val textLocation: TextView = itemView.findViewById(R.id.textLocation)
@@ -132,28 +212,14 @@ class ReportViewHolder(itemView: android.view.View) : androidx.recyclerview.widg
     private val btnView: Button = itemView.findViewById(R.id.btnView)
 
     fun bind(report: Report) {
-        // Set title, you can adjust if different report types
         textTitle.text = "Traffic Accident"
-        // Set location and description
         textLocation.text = report.location
         textDescription.text = report.description
-
-        // Set time (for demo, just show timestamp. You can format for "5m ago" if you want)
         textTime.text = report.timestamp
-
-        // Optionally set the icon (if you have different types, set appropriate icon)
         imgIcon.setImageResource(R.drawable.ic_accident_report)
 
-        // Optionally set up onClickListeners for actions
-        btnValidate.setOnClickListener {
-            // Handle validation action
-            // e.g., notify adapter or activity
-        }
-        btnReject.setOnClickListener {
-            // Handle rejection action
-        }
-        btnView.setOnClickListener {
-            // Handle view details action
-        }
+        btnValidate.setOnClickListener { onValidate(report) }
+        btnReject.setOnClickListener { onReject(report) }
+        btnView.setOnClickListener { onView(report) }
     }
 }
